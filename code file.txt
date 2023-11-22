@@ -1,0 +1,129 @@
+import java.util.Scanner;
+
+// Interface for callback function
+interface TransactionCallback {
+    void onTransactionComplete(Account account, double amount, String transactionType);
+}
+
+// Represents a bank account
+class Account {
+    private int accountNumber;
+    private double balance;
+
+    public Account(int accountNumber, double initialBalance) {
+        this.accountNumber = accountNumber;
+        this.balance = initialBalance;
+    }
+
+    public int getAccountNumber() {
+        return accountNumber;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void deposit(double amount, TransactionCallback callback) {
+        balance += amount;
+        callback.onTransactionComplete(this, amount, "Deposit");
+    }
+
+    public boolean withdraw(double amount, TransactionCallback callback) {
+        if (amount <= balance) {
+            balance -= amount;
+            callback.onTransactionComplete(this, amount, "Withdrawal");
+            return true;
+        } else {
+            System.out.println("Insufficient funds!");
+            return false;
+        }
+    }
+}
+
+// Represents a bank customer
+class Customer {
+    private String name;
+    private Account account;
+
+    public Customer(String name, Account account) {
+        this.name = name;
+        this.account = account;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+}
+
+// Bank class to manage customers and accounts
+class Bank {
+    private Customer[] customers;
+
+    public Bank(Customer[] customers) {
+        this.customers = customers;
+    }
+
+    public void displayCustomerInfo() {
+        for (Customer customer : customers) {
+            System.out.println("Customer: " + customer.getName());
+            System.out.println("Account Number: " + customer.getAccount().getAccountNumber());
+            System.out.println("Balance: $" + customer.getAccount().getBalance());
+            System.out.println();
+        }
+    }
+}
+
+// Main class to test the bank management system
+class BankManagementSystem {
+    public static void main(String[] args) {
+        // Create accounts and customers
+        Account account1 = new Account(1, 1000);
+        Account account2 = new Account(2, 500);
+
+        Customer customer1 = new Customer("John Doe", account1);
+        Customer customer2 = new Customer("Jane Doe", account2);
+
+        Customer[] customers = {customer1, customer2};
+
+        // Create a bank with customers
+        Bank bank = new Bank(customers);
+
+        // Display initial customer information
+        System.out.println("Initial Customer Information:");
+        bank.displayCustomerInfo();
+
+        // Perform transactions
+        performTransactions(customer1.getAccount());
+        performTransactions(customer2.getAccount());
+
+        // Display updated customer information
+        System.out.println("Updated Customer Information:");
+        bank.displayCustomerInfo();
+    }
+
+    private static void performTransactions(Account account) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter the transaction type (Deposit/Withdraw): ");
+        String transactionType = scanner.next();
+        
+        // Consume the newline character
+        scanner.nextLine();
+
+        System.out.println("Enter the amount: ");
+        double amount = scanner.nextDouble();
+
+        // Perform transaction and display updated information
+        if ("Deposit".equalsIgnoreCase(transactionType)) {
+            account.deposit(amount, (acc, amnt, type) -> System.out.println(type + " of $" + amnt + " completed. New balance: $" + acc.getBalance()));
+        } else if ("Withdraw".equalsIgnoreCase(transactionType)) {
+            account.withdraw(amount, (acc, amnt, type) -> System.out.println(type + " of $" + amnt + " completed. New balance: $" + acc.getBalance()));
+        } else {
+            System.out.println("Invalid transaction type");
+        }
+    }
+}
